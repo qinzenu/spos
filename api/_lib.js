@@ -86,6 +86,14 @@ function parseSpotifyHtml(html) {
   return { title, artist, thumbnail };
 }
 
+// Halaman embed Spotify memuat daftar artis dalam JSON
+function parseEmbedHtml(html) {
+  const out = {};
+  const a = html.match(/"artists":\s*\[\s*\{\s*"name":\s*"((?:[^"\\]|\\.)*)"/);
+  if (a) { try { out.artist = JSON.parse('"' + a[1] + '"'); } catch (e) {} }
+  return out;
+}
+
 const isBotErr = (t) => /sign in to confirm|not a bot|--cookies/i.test(t || '');
 
 function shortMsg(t) {
@@ -102,4 +110,4 @@ function friendlyError(errors) {
   }).join(' | ').slice(0, 300);
 }
 
-module.exports = { download, parseSpotifyHtml, friendlyError, isBotErr, ensureTools, titleRegex, YT, FF, COOKIES };
+module.exports = { download, parseSpotifyHtml, parseEmbedHtml, friendlyError, isBotErr, ensureTools, titleRegex, YT, FF, COOKIES };

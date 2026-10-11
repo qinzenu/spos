@@ -971,7 +971,7 @@ async function fetchSpotify(url) {
   const meta = beMeta ? null : await fetchSpotifyMeta(cleanUrl);
 
   let found = null;
-  for (const p of (beMeta ? [] : SPOTIFY_PROVIDERS)) {
+  for (const p of (be ? [] : SPOTIFY_PROVIDERS)) {
     try {
       found = await p.run(cleanUrl);
       if (found && found.audioUrl) break;
@@ -987,7 +987,7 @@ async function fetchSpotify(url) {
 
   // oEmbed hanya memberi judul lagu; ambil nama artis supaya pencarian audio lebih akurat
   let artistInfo = null;
-  if (!found?.author && !beMeta) {
+  if (!found?.author && !be) {
     try {
       const ri = await withTimeout(
         fetch('https://api.fabdl.com/spotify/get?url=' + encodeURIComponent(cleanUrl)),
@@ -1000,7 +1000,7 @@ async function fetchSpotify(url) {
 
   const title = beMeta?.title || found?.title || artistInfo?.name || meta?.title || 'Spotify Track';
   let author = beMeta?.artist || found?.author || artistInfo?.artists || 'Unknown';
-  if (author === 'Unknown' && !beMeta) {
+  if (author === 'Unknown' && !be) {
     // Judul halaman Spotify berbentuk "Lagu - song and lyrics by Artis | Spotify"
     try {
       const html = await fetchTextViaProxy(cleanUrl, 'Spotify page');

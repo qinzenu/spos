@@ -10,9 +10,18 @@ const isYouTube = (t) => /^ytsearch|youtube\.com|youtu\.be/i.test(t);
 
 // Varian klien YouTube — dicoba berurutan kalau kena verifikasi bot
 const YT_VARIANTS = [
-  [],
-  ['--extractor-args', 'youtube:player_client=android_vr'],
-  ['--extractor-args', 'youtube:player_client=tv_simply'],
+  { extra: [], pass: false },
+  { extra: ['--extractor-args', 'youtube:player_client=android_vr'], pass: false },
+  { extra: ['--extractor-args', 'youtube:player_client=tv_simply'], pass: false },
+];
+
+// SoundCloud: format yang SUDAH MP3 diteruskan langsung (pass:true, tanpa ffmpeg).
+// Format lain dikonversi dulu; HLS-aac (MPEG-TS) ditaruh terakhir karena bisa membuat ffmpeg crash.
+const SC_FORMATS = [
+  { f: 'hls_mp3_128', pass: true },
+  { f: 'http_mp3_128', pass: true },
+  { f: 'hls_opus_64', pass: false },
+  { f: 'bestaudio/best', pass: false },
 ];
 
 function fail(res, code, msg) {
@@ -23,7 +32,8 @@ function fail(res, code, msg) {
 }
 
 // Coba satu sumber. Resolve {ok:true} begitu audio mulai mengalir, atau {ok:false,msg} kalau gagal.
-function tryStream(res, target, extra = []) {
+// pass=true: keluaran yt-dlp sudah MP3 → langsung dikirim ke klien.
+function tryStream(res, target, extra = [], pass = false) {
   return new Promise((resolve) => {
     const args = [
       '--no-playlist', '-f', 'bestaudio/best', '-o', '-',
@@ -37,34 +47,43 @@ function tryStream(res, target, extra = []) {
     args.push(...extra, '--', target);
 
     const ytdlp = spawn(YT, args, { env: { ...process.env, HOME: '/tmp' } });
-    const ffmpeg = spawn(FF, ['-hide_banner', '-loglevel', 'error', '-i', 'pipe:0', '-vn', '-f', 'mp3', '-b:a', '128k', 'pipe:1']);
+    const ffmpeg = pass ? null : spawn(FF, ['-hide_banner', '-loglevel', 'error', '-i', 'pipe:0', '-vn', '-f', 'mp3', '-b:a', '128k', 'pipe:1']);
 
     let errText = '', ffErr = '', started = false, settled = false;
     const done = (v) => { if (!settled) { settled = true; resolve(v); } };
-    const stop = () => { try { ytdlp.kill(); } catch (e) {} try { ffmpeg.kill(); } catch (e) {} };
+    const stop = () => { try { ytdlp.kill(); } catch (e) {} try { ffmpeg && ffmpeg.kill(); } catch (e) {} };
+    const failMsg = () => errText.trim() || ffErr.trim();
 
     ytdlp.stderr.on('data', (d) => { errText += d; });
-    ffmpeg.stderr.on('data', (d) => { ffErr += d; });
-    ytdlp.stdout.pipe(ffmpeg.stdin);
-    ffmpeg.stdin.on('error', () => {});
+    ytdlp.on('error', (e) => { errText += e.message; stop(); });
 
-    ffmpeg.stdout.once('data', (chunk) => {
+    let out;
+    if (pass) {
+      out = ytdlp.stdout;
+      ytdlp.on('close', () => { if (!started) done({ ok: false, msg: failMsg() }); });
+    } else {
+      out = ffmpeg.stdout;
+      ffmpeg.stderr.on('data', (d) => { ffErr += d; });
+      ytdlp.stdout.pipe(ffmpeg.stdin);
+      ffmpeg.stdin.on('error', () => {});
+      ffmpeg.on('close', () => { if (!started) done({ ok: false, msg: failMsg() }); });
+      ffmpeg.on('error', (e) => { errText += e.message; stop(); });
+    }
+
+    out.once('data', (chunk) => {
       started = true;
       res.statusCode = 200;
       res.setHeader('Content-Type', 'audio/mpeg');
       res.setHeader('Content-Disposition', 'attachment; filename="audio.mp3"');
       res.write(chunk);
-      ffmpeg.stdout.pipe(res);
+      out.pipe(res);
       res.on('close', stop);
       done({ ok: true });
     });
-    ffmpeg.on('close', () => { if (!started) done({ ok: false, msg: errText.trim() || ffErr.trim() }); });
-    ytdlp.on('error', (e) => { errText += e.message; stop(); });
-    ffmpeg.on('error', (e) => { errText += e.message; stop(); });
   });
 }
 
-module.exports = async (req, res) => {
+async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   if (req.method === 'OPTIONS') { res.statusCode = 204; return res.end(); }
 
@@ -76,20 +95,21 @@ module.exports = async (req, res) => {
 
   const sources = [];
   if (id && /^[\w-]{11}$/.test(id)) {
-    sources.push({ src: 'youtube', target: 'https://www.youtube.com/watch?v=' + id });
+    sources.push({ src: 'youtube', target: 'https://www.youtube.com/watch?v=' + id, variants: YT_VARIANTS });
   } else if (q) {
-    sources.push({ src: 'youtube', target: 'ytsearch1:' + q });
+    sources.push({ src: 'youtube', target: 'ytsearch1:' + q, variants: YT_VARIANTS });
     // SoundCloud: ambil 5 hasil, hanya yang judulnya cocok → tidak salah lagu
     const re = titleRegex(t);
+    const base = ['--max-downloads', '1', ...(re ? ['--match-filter', 'title ~= ' + re] : [])];
     sources.push({
       src: 'soundcloud',
       target: 'scsearch5:' + q.replace(/\s+audio$/i, ''),
-      extra: ['--max-downloads', '1', ...(re ? ['--match-filter', 'title ~= ' + re] : [])],
+      variants: SC_FORMATS.map((v) => ({ extra: [...base, '-f', v.f], pass: v.pass })),
     });
   } else if (url) {
     if (!/^https?:\/\//i.test(url)) return fail(res, 400, 'URL tidak valid');
     if (!ALLOWED.test(url) && !process.env.ALLOW_ANY_URL) return fail(res, 400, 'Platform ini tidak diizinkan');
-    sources.push({ src: 'url', target: url });
+    sources.push({ src: 'url', target: url, variants: [{ extra: [], pass: false }] });
   } else {
     return fail(res, 400, 'Parameter url / id / q tidak valid');
   }
@@ -98,15 +118,22 @@ module.exports = async (req, res) => {
 
   const errors = [];
   for (const s of sources) {
-    const variants = s.src === 'youtube' ? YT_VARIANTS : [s.extra || []];
     let last = null;
-    for (const v of variants) {
-      last = await tryStream(res, s.target, v);
+    for (const v of s.variants) {
+      last = await tryStream(res, s.target, v.extra, v.pass);
       if (last.ok) return;
+      if (s.src === 'soundcloud') {
+        // pesan kosong = tidak ada hasil yang judulnya cocok → format lain tidak akan membantu
+        if (!(last.msg || '').trim()) break;
+        continue;
+      }
       // ganti varian klien hanya kalau penyebabnya verifikasi bot / klien tidak cocok
       if (!(isBotErr(last.msg) || /not available on this app|player response/i.test(last.msg || ''))) break;
     }
     errors.push({ src: s.src, msg: last.msg });
   }
   fail(res, 502, friendlyError(errors));
-};
+}
+
+module.exports = handler;
+module.exports.tryStream = tryStream; // dipakai untuk pengujian
