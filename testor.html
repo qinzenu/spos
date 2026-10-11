@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>All Downloader — AxzyeDev</title>
+<meta name="description" content="Download video & audio dari TikTok, Instagram, YouTube, Spotify, Pinterest, dan lainnya. Gratis." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --text: #f5f5f7;
+    --text-dim: rgba(245, 245, 247, 0.65);
+    --text-mute: rgba(245, 245, 247, 0.42);
+    --blur: 24px;
+    --term-green: #4ade80;
+    --term-cyan: #67e8f9;
+    --term-red: #f87171;
+    --term-yellow: #fbbf24;
+    --purple: #a78bfa;
+    --purple-glow: rgba(167, 139, 250, 0.5);
+  }
+  html, body {
+    background: #000; color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden; min-height: 100vh;
+  }
+  .bg-layer {
+    position: fixed; inset: 0; z-index: -2;
+    background:
+      radial-gradient(ellipse 80% 60% at 15% 10%, rgba(120, 80, 255, 0.32), transparent 60%),
+      radial-gradient(ellipse 70% 55% at 85% 20%, rgba(0, 200, 255, 0.20), transparent 60%),
+      radial-gradient(ellipse 90% 70% at 50% 100%, rgba(255, 60, 180, 0.18), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 90% 90%, rgba(60, 255, 200, 0.12), transparent 65%),
+      #000;
+    animation: floatBg 20s ease-in-out infinite alternate;
+  }
+  @keyframes floatBg { 0% { transform: scale(1) translate(0,0); } 100% { transform: scale(1.08) translate(-1%,-1%); } }
+  .bg-grain {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    opacity: 0.035; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+  .icon-svg { width: 1em; height: 1em; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; stroke: currentColor; display: block; flex-shrink: 0; }
+  nav {
+    position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
+    width: calc(100% - 32px); max-width: 1180px; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px 12px 22px; border-radius: 20px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%);
+    backdrop-filter: blur(var(--blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.14);
+    box-shadow: 0 1px 0 0 rgba(255,255,255,0.20) inset, 0 -1px 0 0 rgba(255,255,255,0.04) inset, 0 10px 40px -8px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.4);
+  }
+  nav::before { content: ''; position: absolute; top: 0; left: 12px; right: 12px; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent); pointer-events: none; }
+  .brand { display: flex; align-items: center; gap: 11px; font-weight: 700; font-size: 17px; letter-spacing: -0.02em; color: var(--text); text-decoration: none; }
+  .brand-logo { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; background: linear-gradient(135deg, rgba(255,255,255,0.22), rgba(255,255,255,0.06)); border: 1px solid rgba(255,255,255,0.22); box-shadow: 0 1px 0 rgba(255,255,255,0.4) inset, 0 4px 14px rgba(167,139,250,0.5); backdrop-filter: blur(10px); }
+  .brand-logo svg { width: 17px; height: 17px; stroke: var(--text); stroke-width: 2.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .brand span b { color: rgba(255,255,255,0.55); font-weight: 500; }
+  .back-link {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 14px; border-radius: 12px; font-size: 13.5px; font-weight: 500;
+    color: var(--text-dim); text-decoration: none;
+    background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.20) inset;
+    transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+  }
+  .back-link:hover { color: var(--text); background: linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.06)); transform: translateY(-1px); }
+  .back-link .icon-svg { width: 14px; height: 14px; }
+  .page { min-height: 100vh; padding: 130px 20px 80px; display: flex; justify-content: center; }
+  .wrap { width: 100%; max-width: 720px; }
+  .head { text-align: center; margin-bottom: 30px; animation: fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) both; }
+  .head-logo {
+    width: 72px; height: 72px; border-radius: 22px; margin: 0 auto 18px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, rgba(167,139,250,0.24), rgba(167,139,250,0.06));
+    border: 1px solid rgba(167,139,250,0.32);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.4) inset, 0 16px 40px -10px var(--purple-glow);
+    color: var(--purple);
+  }
+  .head-logo .icon-svg { width: 34px; height: 34px; stroke-width: 1.8; }
+  .head h1 { font-size: 27px; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 8px; }
+  .head p { font-size: 14px; color: var(--text-dim); line-height: 1.55; max-width: 540px; margin: 0 auto; }
+  .head p b { color: var(--text); font-weight: 600; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+  .card {
+    padding: 26px 24px; border-radius: 24px;
+    background: linear-gradient(160deg, rgba(255,255,255,0.085) 0%, rgba(255,255,255,0.025) 100%);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.13);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.22) inset, 0 -1px 0 rgba(255,255,255,0.03) inset, 0 20px 60px -20px rgba(0,0,0,0.8);
+    position: relative; overflow: hidden;
+    animation: fadeUp 0.8s 0.05s cubic-bezier(0.16,1,0.3,1) both;
+    margin-bottom: 24px;
+  }
+  .card::before { content: ''; position: absolute; top: 0; left: 24px; right: 24px; height: 1px; background: linear-gradient(90deg, transparent, rgba(167,139,250,0.6), transparent); }
+  .card-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-mute); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .card-label .badge { padding: 2px 8px; border-radius: 100px; font-size: 10px; font-weight: 600; letter-spacing: 0.06em; color: rgba(167,139,250,0.95); background: rgba(167,139,250,0.10); border: 1px solid rgba(167,139,250,0.24); }
+  .card-title { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; }
+  .card-desc { font-size: 13.5px; color: var(--text-dim); line-height: 1.6; margin-bottom: 18px; }
+  .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .field label { font-size: 13px; font-weight: 500; color: var(--text-dim); padding-left: 4px; display: flex; align-items: center; justify-content: space-between; }
+  .field label .hint { font-size: 11px; color: var(--text-mute); font-weight: 400; font-family: 'JetBrains Mono', monospace; }
+  .input-wrap {
+    position: relative; display: flex; align-items: center; border-radius: 14px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.20) inset, 0 -1px 0 rgba(255,255,255,0.02) inset;
+    transition: all 0.25s ease;
+  }
+  .input-wrap:focus-within {
+    background: linear-gradient(180deg, rgba(255,255,255,0.11), rgba(255,255,255,0.05));
+    border-color: rgba(167,139,250,0.45);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.30) inset, 0 0 0 4px rgba(167,139,250,0.10), 0 8px 24px -8px var(--purple-glow);
+  }
+  .input-wrap.error { border-color: rgba(255,80,100,0.55); }
+  .input-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-mute); pointer-events: none; display: flex; transition: color 0.25s ease; }
+  .input-icon .icon-svg { width: 17px; height: 17px; stroke-width: 1.8; }
+  .input-wrap:focus-within .input-icon { color: var(--purple); }
+  .input-wrap input {
+    flex: 1; width: 100%; padding: 15px 44px 15px 44px;
+    background: transparent; border: none; outline: none;
+    color: var(--text); font-family: inherit; font-size: 14px;
+  }
+  .input-wrap input::placeholder { color: var(--text-mute); }
+  .input-clear {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    width: 28px; height: 28px; border-radius: 8px;
+    display: grid; place-items: center;
+    background: transparent; border: none; cursor: pointer;
+    color: var(--text-mute); transition: all 0.2s;
+  }
+  .input-clear:hover { color: var(--text); background: rgba(255,255,255,0.08); }
+  .input-clear .icon-svg { width: 14px; height: 14px; }
+  .input-clear.hide { display: none; }
+  .btn {
+    position: relative; display: inline-flex; align-items: center; justify-content: center;
+    gap: 10px; padding: 15px 24px; border-radius: 14px;
+    font-size: 15px; font-weight: 600; letter-spacing: -0.01em;
+    text-decoration: none; cursor: pointer; border: none;
+    transition: all 0.28s cubic-bezier(0.4,0,0.2,1);
+    font-family: inherit; overflow: hidden; width: 100%;
+  }
+  .btn .icon-svg { width: 17px; height: 17px; position: relative; z-index: 1; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+  .btn span { position: relative; z-index: 1; }
+  .btn-primary {
+    color: #0a0a0a;
+    background: linear-gradient(180deg, rgba(167,139,250,0.98), rgba(140,110,230,0.92));
+    box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 12px 32px -8px var(--purple-glow), 0 6px 20px rgba(0,0,0,0.4);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 18px 44px -8px var(--purple-glow), 0 8px 24px rgba(0,0,0,0.5); }
+  .btn-primary:active { transform: translateY(0) scale(0.98); }
+  .btn-primary::after { content: ''; position: absolute; inset: 0; background: linear-gradient(120deg, transparent 20%, rgba(255,255,255,0.55) 50%, transparent 80%); transform: translateX(-120%); transition: transform 0.7s ease; }
+  .btn-primary:hover::after { transform: translateX(120%); }
+  .btn-glass {
+    color: var(--text);
+    background: linear-gradient(180deg, rgba(255,255,255,0.11), rgba(255,255,255,0.04));
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.16);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.28) inset, 0 10px 30px -8px rgba(0,0,0,0.6);
+  }
+  .btn-glass:hover { transform: translateY(-2px); background: linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.07)); border-color: rgba(255,255,255,0.24); }
+  .btn-glass:active { transform: translateY(0) scale(0.98); }
+  .btn-green {
+    color: #0a0a0a;
+    background: linear-gradient(180deg, rgba(74,222,128,0.98), rgba(60,200,110,0.92));
+    box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 12px 32px -8px rgba(74,222,128,0.42);
+  }
+  .btn-green:hover { transform: translateY(-2px); }
+  .btn-cyan {
+    color: #0a0a0a;
+    background: linear-gradient(180deg, rgba(103,232,249,0.98), rgba(80,200,220,0.92));
+    box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 12px 32px -8px rgba(103,232,249,0.42);
+  }
+  .btn-cyan:hover { transform: translateY(-2px); }
+  .btn:disabled, .btn.loading { opacity: 0.55; cursor: not-allowed; pointer-events: none; }
+  .spinner { width: 16px; height: 16px; border: 2px solid rgba(0,0,0,0.15); border-top-color: currentColor; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
+  .btn-glass .spinner { border-color: rgba(255,255,255,0.20); border-top-color: currentColor; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .preview {
+    margin-top: 20px; padding: 18px; border-radius: 18px;
+    background: linear-gradient(160deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.12) inset, 0 12px 32px -18px rgba(0,0,0,0.7);
+    animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) both;
+    display: none;
+  }
+  .preview.show { display: block; }
+  .preview-media {
+    position: relative; width: 100%; border-radius: 14px; overflow: hidden;
+    background: #000; margin-bottom: 16px;
+    aspect-ratio: 16 / 9;
+    display: grid; place-items: center;
+  }
+  .preview-media.vertical { aspect-ratio: 9 / 16; max-width: 280px; margin-left: auto; margin-right: auto; }
+  .preview-media img, .preview-media video {
+    width: 100%; height: 100%; object-fit: contain; display: block;
+  }
+  .preview-media .ph {
+    display: grid; place-items: center; width: 100%; height: 100%;
+    color: var(--text-mute); background: linear-gradient(135deg, rgba(167,139,250,0.08), rgba(103,232,249,0.06));
+  }
+  .preview-media .ph .icon-svg { width: 48px; height: 48px; stroke-width: 1.2; }
+  .preview-badge {
+    position: absolute; top: 10px; left: 10px;
+    padding: 4px 10px; border-radius: 100px;
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em;
+    color: #0a0a0a;
+    background: linear-gradient(180deg, rgba(167,139,250,0.98), rgba(140,110,230,0.92));
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    text-transform: uppercase;
+  }
+  .preview-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 6px; line-height: 1.4; word-break: break-word; }
+  .preview-author { font-size: 12.5px; color: var(--text-dim); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .preview-author .icon-svg { width: 13px; height: 13px; color: var(--purple); }
+  .preview-meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11.5px; color: var(--text-mute); margin-bottom: 16px; font-family: 'JetBrains Mono', monospace; }
+  .preview-meta span { display: inline-flex; align-items: center; gap: 4px; }
+  .preview-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .preview-actions .btn { padding: 13px 16px; font-size: 14px; }
+  .preview-actions .btn-full { grid-column: 1 / -1; }
+  .preview-note { font-size: 12px; line-height: 1.55; color: var(--term-yellow); margin-bottom: 14px; padding: 10px 12px; border-radius: 10px; background: rgba(251,191,36,0.07); border: 1px solid rgba(251,191,36,0.22); }
+  .empty { padding: 40px 20px; border-radius: 18px; text-align: center; background: linear-gradient(160deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%); border: 1px dashed rgba(255,255,255,0.12); color: var(--text-mute); font-size: 13.5px; line-height: 1.6; }
+  .empty .icon-svg { width: 36px; height: 36px; margin: 0 auto 14px; color: var(--text-mute); stroke-width: 1.5; }
+  .empty b { color: var(--text-dim); font-weight: 600; }
+  .loading-box { padding: 30px 20px; text-align: center; color: var(--text-dim); font-size: 13.5px; display: none; }
+  .loading-box.show { display: block; }
+  .loading-box .loader {
+    width: 44px; height: 44px; margin: 0 auto 16px;
+    border: 3px solid rgba(167,139,250,0.15);
+    border-top-color: var(--purple);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  .info-banner {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 13px 15px; border-radius: 14px; margin-bottom: 18px;
+    background: linear-gradient(180deg, rgba(167,139,250,0.09), rgba(167,139,250,0.02));
+    border: 1px solid rgba(167,139,250,0.20);
+    font-size: 12.5px; line-height: 1.55;
+    color: rgba(245,245,247,0.85);
+  }
+  .info-banner .icon-svg { width: 16px; height: 16px; color: var(--purple); margin-top: 1px; flex-shrink: 0; }
+  .info-banner b { color: var(--text); font-weight: 600; }
+  .info-banner code { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; padding: 1px 5px; border-radius: 4px; background: rgba(255,255,255,0.08); color: var(--purple); }
+  .platforms { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .platforms .tag {
+    font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 4px 9px; border-radius: 8px;
+    color: var(--text-dim);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: all 0.2s;
+  }
+  .platforms .tag:hover { color: var(--text); background: rgba(255,255,255,0.09); }
+  .platforms .tag.active { color: var(--purple); background: rgba(167,139,250,0.12); border-color: rgba(167,139,250,0.32); }
+  .toast {
+    position: fixed; top: 100px; left: 50%;
+    transform: translateX(-50%) translateY(-30px);
+    z-index: 999; padding: 14px 20px; border-radius: 14px;
+    font-size: 14px; font-weight: 500; color: var(--text);
+    display: flex; align-items: center; gap: 10px;
+    max-width: calc(100% - 40px);
+    background: linear-gradient(180deg, rgba(30,30,35,0.85), rgba(15,15,18,0.82));
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.16);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.24) inset, 0 20px 50px -12px rgba(0,0,0,0.9), 0 4px 12px rgba(0,0,0,0.5);
+    opacity: 0; visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+  }
+  .toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+  .toast .icon-svg { width: 17px; height: 17px; flex-shrink: 0; }
+  .toast.success { border-color: rgba(52,255,158,0.30); }
+  .toast.success .icon-svg { color: #34ff9e; }
+  .toast.error { border-color: rgba(255,80,100,0.30); }
+  .toast.error .icon-svg { color: #ff5064; }
+  .toast.warn { border-color: rgba(251,191,36,0.30); }
+  .toast.warn .icon-svg { color: #fbbf24; }
+  @media (max-width: 480px) {
+    nav { top: 12px; padding: 10px 12px 10px 16px; border-radius: 18px; }
+    .brand { font-size: 16px; }
+    .brand-logo { width: 30px; height: 30px; }
+    .back-link { padding: 8px 11px; font-size: 12.5px; }
+    .back-link span { display: none; }
+    .page { padding: 110px 16px 60px; }
+    .head h1 { font-size: 23px; }
+    .head-logo { width: 62px; height: 62px; border-radius: 20px; }
+    .head-logo .icon-svg { width: 28px; height: 28px; }
+    .card { padding: 20px; border-radius: 22px; }
+    .preview-actions { grid-template-columns: 1fr; }
+  }
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: #000; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); border-radius: 10px; border: 2px solid #000; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+</style>
+</head>
+<body>
+
+  <div class="bg-layer"></div>
+  <div class="bg-grain"></div>
+
+  <nav>
+    <a href="/dashboard.html" class="brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <polyline points="16 18 22 12 16 6" />
+          <polyline points="8 6 2 12 8 18" />
+        </svg>
+      </div>
+      <span>Axzye<b>Dev</b></span>
+    </a>
+    <a href="/dashboard.html" class="back-link">
+      <svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <line x1="19" y1="12" x2="5" y2="12" />
+        <polyline points="12 19 5 12 12 5" />
+      </svg>
+      <span>Dashboard</span>
+    </a>
+  </nav>
+
+  <main class="page">
+    <div class="wrap">
+
+      <div class="head">
+        <div class="head-logo">
+          <svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+        </div>
+        <h1>All-in-One Downloader</h1>
+        <p>Tempel link dari <b>TikTok, Instagram, YouTube, Spotify, Pinterest</b>, dll.<br />Preview otomatis + download MP4 atau MP3.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-label">
+          Downloader
+          <span class="badge">FREE</span>
+        </div>
+        <div class="card-title">Tempel Link Kamu</div>
+        <div class="card-desc">Support banyak platform. Cukup paste URL, preview muncul otomatis.</div>
+
+        <div class="field">
+          <label for="urlInput">
+            URL Video / Lagu
+            <span class="hint" id="detectedHint">Menunggu...</span>
+          </label>
+          <div class="input-wrap" id="urlWrap">
+            <span class="input-icon">
+              <svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+              </svg>
+            </span>
+            <input
+              type="text"
+              id="urlInput"
+              placeholder="https://www.tiktok.com/@user/video/..."
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button type="button" class="input-clear hide" id="clearBtn" aria-label="Clear">
+              <svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary" id="fetchBtn" disabled>
+          <span>🔍 Ambil Media</span>
+          <svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        </button>
+
+        <div class="platforms">
+          <span class="tag" data-tag="tiktok">TikTok</span>
+          <span class="tag" data-tag="instagram">Instagram</span>
+          <span class="tag" data-tag="youtube">YouTube</span>
+          <span class="tag" data-tag="spotify">Spotify</span>
+          <span class="tag" data-tag="pinterest">Pinterest</span>
+          <span class="tag" data-tag="facebook">Facebook</span>
+          <span class="tag" data-tag="twitter">Twitter/X</span>
+          <span class="tag" data-tag="soundcloud">SoundCloud</span>
+        </div>
+
+        <div class="loading-box" id="loadingBox">
+          <div class="loader"></div>
+          <div id="loadingText">Mengambil data...</div>
+        </div>
+
+        <div class="preview" id="preview">
+          <div class="preview-media" id="previewMedia">
+            <div class="ph">
+              <svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="23 7 16 12 23 17 23 7" />
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+              </svg>
+            </div>
+          </div>
+          <div class="preview-title" id="previewTitle">—</div>
+          <div class="preview-author">
+            <svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <span id="previewAuthor">—</span>
+          </div>
+          <div class="preview-meta" id="previewMeta"></div>
+          <div class="preview-note" id="previewNote" style="display:none"></div>
+          <div class="preview-actions" id="previewActions"></div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="alert"></div>
+
+<script>
+/* ============================================================
+   UTIL
+============================================================ */
+const $ = (id) => document.getElementById(id);
+const ICONS = {
+  success: '<svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg>',
+  error: '<svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+  warn: '<svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+};
+const toastEl = $('toast');
+let toastTimer;
+function showToast(msg, type = 'success') {
+  clearTimeout(toastTimer);
+  toastEl.className = 'toast ' + type;
+  toastEl.innerHTML = (ICONS[type] || '') + '<span>' + escapeHtml(msg) + '</span>';
+  requestAnimationFrame(() => toastEl.classList.add('show'));
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3600);
+}
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+function formatDuration(sec) {
+  if (!sec || isNaN(sec)) return null;
+  sec = Math.round(sec);
+  const m = Math.floor(sec / 60), s = sec % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+function formatNumber(n) {
+  if (!n && n !== 0) return null;
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return String(n);
+}
+function setLoading(btn, loading) {
+  if (!btn) return;
+  if (loading) {
+    btn.classList.add('loading');
+    btn.disabled = true;
+    const span = btn.querySelector('span');
+    if (span) {
+      span.dataset.original = span.textContent;
+      span.innerHTML = '<span class="spinner"></span>';
+    }
+  } else {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    const span = btn.querySelector('span');
+    if (span && span.dataset.original) span.textContent = span.dataset.original;
+  }
+}
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, rej) => setTimeout(() => rej(new Error((label || 'Request') + ' timeout')), ms))
+  ]);
+}
+
+/* ============================================================
+   PLATFORM DETECTION
+============================================================ */
+const PLATFORMS = [
+  { key: 'tiktok',    name: 'TikTok',     regex: /tiktok\.com|vt\.tiktok|vm\.tiktok/i },
+  { key: 'instagram', name: 'Instagram',  regex: /instagram\.com|instagr\.am/i },
+  { key: 'youtube',   name: 'YouTube',    regex: /youtube\.com|youtu\.be/i },
+  { key: 'spotify',   name: 'Spotify',    regex: /spotify\.com|spoti\.fi/i },
+  { key: 'pinterest', name: 'Pinterest',  regex: /pinterest\.com|pin\.it/i },
+  { key: 'facebook',  name: 'Facebook',   regex: /facebook\.com|fb\.watch/i },
+  { key: 'twitter',   name: 'Twitter/X',  regex: /twitter\.com|x\.com/i },
+  { key: 'soundcloud',name: 'SoundCloud', regex: /soundcloud\.com/i },
+];
+function detectPlatform(url) {
+  for (const p of PLATFORMS) if (p.regex.test(url)) return p;
+  return null;
+}
+
+/* ============================================================
+   API HANDLERS — public free APIs (browser-side)
+============================================================ */
+
+/* --- TikTok via tikwm.com (very reliable, CORS enabled) --- */
+async function fetchTikTok(url) {
+  const r = await withTimeout(
+    fetch(`https://tikwm.com/api/?url=${encodeURIComponent(url)}&hd=1`),
+    20000, 'TikTok'
+  );
+  const j = await r.json();
+  if (j.code !== 0) throw new Error(j.msg || 'Gagal mengambil data TikTok');
+  const d = j.data;
+  return {
+    platform: 'TikTok',
+    title: d.title || d.music_info?.title || 'TikTok Video',
+    author: d.author?.nickname || d.author?.unique_id || 'Unknown',
+    thumbnail: d.origin_cover || d.cover,
+    duration: d.duration,
+    videoUrl: d.hdplay || d.play,
+    audioUrl: d.music,
+    extra: {
+      views: d.play_count,
+      likes: d.digg_count,
+      comments: d.comment_count,
+    }
+  };
+}
+
+/* --- YouTube via Piped API (returns metadata + streams) --- */
+async function fetchYouTube(url) {
+  const idMatch = url.match(/(?:v=|youtu\.be\/|shorts\/)([A-Za-z0-9_-]{11})/);
+  if (!idMatch) throw new Error('URL YouTube tidak valid');
+  const videoId = idMatch[1];
+
+  const instances = [
+    'https://pipedapi.kavin.rocks',
+    'https://pipedapi.adminforge.de',
+    'https://api.piped.yt',
+    'https://pipedapi.reallyaweso.me',
+  ];
+  let lastErr;
+  for (const base of instances) {
+    try {
+      const r = await withTimeout(fetch(`${base}/streams/${videoId}`), 15000, 'YouTube');
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json();
+      if (!j.title) throw new Error('No title');
+
+      // pick best video (<=720p) & best audio
+      const vStreams = (j.videoStreams || []).filter(v => !v.videoOnly === false && v.mimeType?.includes('video/mp4'));
+      const aStreams = (j.audioStreams || []).filter(a => a.mimeType?.includes('audio'));
+
+      const videos = (j.videoStreams || []).filter(v => v.mimeType?.includes('video/mp4') && !v.videoOnly);
+      const video = videos.find(v => (v.quality || '').includes('720')) || videos[0];
+      const audio = aStreams[0];
+
+      return {
+        platform: 'YouTube',
+        title: j.title,
+        author: j.uploader || 'Unknown',
+        thumbnail: j.thumbnailUrl,
+        duration: j.duration,
+        videoUrl: video?.url,
+        audioUrl: audio?.url,
+        audioExt: (audio?.mimeType || '').includes('webm') ? 'webm' : 'm4a',
+        extra: {
+          views: j.views,
+          likes: j.likes,
+          uploadDate: j.uploadDate,
+        }
+      };
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('Semua server YouTube gagal');
+}
+
+/* --- Cobalt (multi-platform) for IG, Pinterest, Twitter, FB, SoundCloud --- */
+const COBALT_INSTANCES = [
+  'https://cobalt-api.kwiatekmiki.com/',
+  'https://api.cobalt.best/',
+  'https://cobalt-backend.canine.tools/',
+  'https://co.eepy.today/',
+];
+async function fetchViaCobalt(url, platformName) {
+  let lastErr;
+  for (const base of COBALT_INSTANCES) {
+    try {
+      const r = await withTimeout(fetch(base, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url,
+          videoQuality: '720',
+          audioFormat: 'mp3',
+          downloadMode: 'auto',
+          filenameStyle: 'basic',
+        })
+      }), 20000, platformName);
+      const j = await r.json();
+      if (j.status === 'error' || j.error) {
+        lastErr = new Error(j.error?.code || j.text || 'Cobalt error');
+        continue;
+      }
+      if (j.status === 'tunnel' || j.status === 'redirect') {
+        return {
+          platform: platformName,
+          title: platformName + ' Media',
+          author: 'Unknown',
+          thumbnail: null,
+          duration: null,
+          videoUrl: j.url,
+          audioUrl: null,
+          extra: {}
+        };
+      }
+      if (j.status === 'picker' && j.picker?.length) {
+        const first = j.picker[0];
+        return {
+          platform: platformName,
+          title: platformName + ' Media (multiple)',
+          author: 'Unknown',
+          thumbnail: null,
+          duration: null,
+          videoUrl: first.url,
+          audioUrl: null,
+          extra: { count: j.picker.length, picker: j.picker }
+        };
+      }
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('Server ' + platformName + ' tidak tersedia');
+}
+
+/* --- Spotify (VERSI LAMA — api.spotifydown.com sudah mati / DNS tidak ketemu) ---
+   Dibiarkan di sini sebagai arsip, tidak dipakai lagi oleh dispatcher. */
+async function fetchSpotifyLegacy(url) {
+  const idMatch = url.match(/(?:track|album|playlist)\/([a-zA-Z0-9]+)/);
+  if (!idMatch) throw new Error('URL Spotify tidak valid');
+  const isTrack = /track\//.test(url);
+  if (!isTrack) throw new Error('Sementara hanya support link track (bukan album/playlist)');
+  const trackId = idMatch[1];
+
+  const r = await withTimeout(fetch(`https://api.spotifydown.com/download/${trackId}`, {
+    headers: {
+      'Origin': 'https://spotifydown.com',
+      'Referer': 'https://spotifydown.com/'
+    }
+  }), 20000, 'Spotify');
+  const j = await r.json();
+  if (!j.success) throw new Error(j.message || 'Gagal mengambil data Spotify');
+  const m = j.metadata || {};
+  return {
+    platform: 'Spotify',
+    title: m.title || 'Spotify Track',
+    author: m.artists || 'Unknown',
+    thumbnail: m.cover || null,
+    duration: m.duration ? parseInt(m.duration, 10) : null,
+    videoUrl: null,
+    audioUrl: j.link,
+    extra: { album: m.album }
+  };
+}
+
+/* --- Spotify (VERSI BARU) ---
+   1) Metadata (judul + cover) dari oEmbed resmi Spotify — stabil & CORS aktif.
+   2) Link audio dicoba dari beberapa provider berurutan (fallback otomatis).
+   3) Kalau semua provider gagal, preview tetap tampil + tombol cari di YouTube. */
+
+// Cari URL audio di dalam JSON apa pun (struktur tiap provider beda-beda)
+function findAudioUrl(obj, depth = 0) {
+  if (!obj || depth > 5) return null;
+  if (typeof obj === 'string') return /^https?:\/\//i.test(obj) ? obj : null;
+  if (Array.isArray(obj)) {
+    for (const it of obj) { const f = findAudioUrl(it, depth + 1); if (f) return f; }
+    return null;
+  }
+  if (typeof obj === 'object') {
+    const keys = ['download', 'downloadUrl', 'download_url', 'link', 'url', 'audio', 'mp3'];
+    for (const k of keys) {
+      if (typeof obj[k] === 'string' && /^https?:\/\//i.test(obj[k])) return obj[k];
+    }
+    for (const k of Object.keys(obj)) {
+      if (/image|cover|thumb|avatar|poster/i.test(k)) continue;
+      const f = findAudioUrl(obj[k], depth + 1);
+      if (f) return f;
+    }
+  }
+  return null;
+}
+
+async function fetchSpotifyMeta(url) {
+  try {
+    const r = await withTimeout(
+      fetch('https://open.spotify.com/oembed?url=' + encodeURIComponent(url)),
+      10000, 'Spotify metadata'
+    );
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    return { title: j.title || null, thumbnail: j.thumbnail_url || null };
+  } catch (e) {
+    console.warn('Spotify oEmbed gagal:', e);
+    return null;
+  }
+}
+
+const SPOTIFY_PROVIDERS = [
+  {
+    name: 'siputzx',
+    run: async (url) => {
+      const r = await withTimeout(
+        fetch('https://api.siputzx.my.id/api/d/spotify?url=' + encodeURIComponent(url)),
+        20000, 'siputzx'
+      );
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json();
+      const d = j.data || j.result || j;
+      const audio = findAudioUrl(d);
+      if (!audio) throw new Error('Tidak ada link audio');
+      return {
+        audioUrl: audio,
+        title: d.title || d.name || null,
+        author: d.artist || d.artis || d.artists || null,
+        thumbnail: d.image || d.cover || d.thumbnail || null,
+      };
+    }
+  },
+  {
+    name: 'fabdl',
+    run: async (url) => {
+      const r1 = await withTimeout(
+        fetch('https://api.fabdl.com/spotify/get?url=' + encodeURIComponent(url)),
+        20000, 'fabdl'
+      );
+      if (!r1.ok) throw new Error('HTTP ' + r1.status);
+      const j1 = await r1.json();
+      const res = j1.result;
+      if (!res || !res.gid || !res.id) throw new Error('Data track tidak ada');
+      const r2 = await withTimeout(
+        fetch(`https://api.fabdl.com/spotify/mp3-convert-task/${res.gid}/${res.id}`),
+        20000, 'fabdl convert'
+      );
+      if (!r2.ok) throw new Error('HTTP ' + r2.status);
+      const j2 = await r2.json();
+      const dl = j2.result?.download_url;
+      if (!dl) throw new Error('Link download belum siap');
+      return {
+        audioUrl: dl.startsWith('http') ? dl : 'https://api.fabdl.com' + dl,
+        title: res.name || null,
+        author: res.artists || null,
+        thumbnail: res.image || null,
+        duration: res.duration_ms ? Math.round(res.duration_ms / 1000) : null,
+      };
+    }
+  },
+];
+
+/* ============================================================
+   AUDIO HELPERS (baru) — dipanggil saat tombol Download MP3 diklik
+============================================================ */
+const PIPED_INSTANCES = [
+  'https://pipedapi.kavin.rocks',
+  'https://pipedapi.adminforge.de',
+  'https://api.piped.yt',
+  'https://pipedapi.reallyaweso.me',
+];
+
+// Minta Cobalt mengonversi URL apa pun jadi MP3 (mode "audio")
+async function cobaltAudio(url) {
+  const be = await getBackend();
+  if (be) return be + '/api/audio?url=' + encodeURIComponent(url);
+  let lastErr;
+  for (const base of COBALT_INSTANCES) {
+    try {
+      const r = await withTimeout(fetch(base, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url,
+          downloadMode: 'audio',
+          audioFormat: 'mp3',
+          audioBitrate: '128',
+          filenameStyle: 'basic',
+        })
+      }), 25000, 'Audio');
+      const j = await r.json();
+      if (j.status === 'tunnel' || j.status === 'redirect') return j.url;
+      if (j.status === 'picker' && j.picker?.length) {
+        const a = j.picker.find(p => p.type === 'audio') || j.picker[0];
+        if (a?.url) return a.url;
+      }
+      lastErr = new Error(j.error?.code || j.text || 'Cobalt error');
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('Server audio tidak tersedia');
+}
+
+// Tambahkan resolver MP3 ke hasil Cobalt (IG, FB, Twitter, SoundCloud, dll.)
+function addCobaltAudio(result, sourceUrl) {
+  // SoundCloud: hasil Cobalt sebenarnya audio, bukan video
+  if (result.platform === 'SoundCloud' && result.videoUrl && !result.audioUrl) {
+    result.audioUrl = result.videoUrl;
+    result.videoUrl = null;
+    return result;
+  }
+  // Pinterest umumnya tidak punya audio — tidak perlu tombol MP3
+  if (result.platform === 'Pinterest') return result;
+  if (!result.audioUrl) {
+    result.audioResolver = async () => ({ url: await cobaltAudio(sourceUrl), ext: 'mp3' });
+  }
+  return result;
+}
+
+// Alamat API di Vercel. Kosongkan kalau halaman ini sudah di-hosting di Vercel (otomatis pakai domain yang sama).
+// Isi kalau membuka file ini dari tempat lain, contoh: 'https://nama-proyek.vercel.app'
+const AUDIO_BACKEND = '';
+
+// Deteksi otomatis API (Vercel): AUDIO_BACKEND kalau diisi, kalau tidak domain halaman ini sendiri
+let _backendCache = null; // { v: urlAtauNull, t: waktu }
+async function getBackend() {
+  if (_backendCache && Date.now() - _backendCache.t < (_backendCache.v ? 600000 : 15000)) return _backendCache.v;
+  const cands = [];
+  if (AUDIO_BACKEND) cands.push(AUDIO_BACKEND.replace(/\/$/, ''));
+  const h = location.hostname;
+  const isLocal = !h || h === 'localhost' || h === '127.0.0.1';
+  // Di-hosting (mis. Vercel): fungsi /api ada di domain yang sama
+  if (location.protocol.startsWith('http') && !isLocal) cands.push(location.origin);
+  let found = null;
+  for (const base of [...new Set(cands)]) {
+    try {
+      const r = await withTimeout(fetch(base + '/api/health'), 2500, 'Backend');
+      const j = await r.json();
+      if (j && j.ok) { found = base; break; }
+    } catch (e) { /* coba kandidat berikutnya */ }
+  }
+  _backendCache = { v: found, t: Date.now() };
+  return found;
+}
+
+// Proxy CORS publik — dipakai untuk membaca halaman yang tidak mengizinkan fetch dari browser
+const CORS_PROXIES = [
+  (u) => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+  (u) => 'https://corsproxy.io/?' + encodeURIComponent(u),
+];
+async function fetchTextViaProxy(u, label) {
+  let lastErr;
+  for (const mk of CORS_PROXIES) {
+    try {
+      const r = await withTimeout(fetch(mk(u)), 15000, label || 'Proxy');
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return await r.text();
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('Proxy gagal');
+}
+
+// Daftar server Piped yang masih hidup (diambil dinamis, karena server publik sering berganti)
+let _pipedCache = null;
+async function getPipedInstances() {
+  if (_pipedCache) return _pipedCache;
+  let list = [];
+  try {
+    const r = await withTimeout(fetch('https://piped-instances.kavin.rocks/'), 8000, 'Daftar server');
+    const j = await r.json();
+    list = j
+      .filter(i => i.api_url)
+      .sort((x, y) => (y.uptime_24h || 0) - (x.uptime_24h || 0))
+      .map(i => i.api_url.replace(/\/$/, ''));
+  } catch (e) { console.warn('Daftar Piped gagal:', e.message); }
+  _pipedCache = [...new Set([...list.slice(0, 6), ...PIPED_INSTANCES])];
+  return _pipedCache;
+}
+
+// Cari ID video YouTube dari kata kunci lagu
+async function youtubeSearchId(query) {
+  // 1) Baca halaman hasil pencarian YouTube lewat proxy CORS (tidak bergantung server Piped)
+  try {
+    const html = await fetchTextViaProxy(
+      'https://www.youtube.com/results?search_query=' + encodeURIComponent(query) + '&sp=EgIQAQ%3D%3D',
+      'Pencarian'
+    );
+    const m = html.match(/"videoRenderer":\{"videoId":"([A-Za-z0-9_-]{11})"/)
+           || html.match(/"videoId":"([A-Za-z0-9_-]{11})"/);
+    if (m) return m[1];
+  } catch (e) { console.warn('Pencarian via proxy gagal:', e.message); }
+
+  // 2) Cadangan: API pencarian Piped
+  let lastErr;
+  for (const base of await getPipedInstances()) {
+    try {
+      const r = await withTimeout(
+        fetch(`${base}/search?q=${encodeURIComponent(query)}&filter=videos`),
+        12000, 'Pencarian'
+      );
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json();
+      const item = (j.items || []).find(i => i.url && i.url.includes('watch?v='));
+      if (item) return item.url.split('v=')[1].split('&')[0];
+      throw new Error('Hasil kosong');
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('Pencarian lagu gagal. Coba lagi nanti.');
+}
+
+// Ambil audio dari ID video YouTube: backend sendiri → MP3 via Cobalt → stream audio Piped
+async function audioFromYouTubeId(videoId) {
+  const be = await getBackend();
+  if (be) return { url: be + '/api/audio?id=' + videoId, ext: 'mp3' };
+  try {
+    const u = await cobaltAudio('https://www.youtube.com/watch?v=' + videoId);
+    return { url: u, ext: 'mp3' };
+  } catch (e) { console.warn('Cobalt audio gagal:', e.message); }
+
+  let lastErr;
+  for (const base of await getPipedInstances()) {
+    try {
+      const r = await withTimeout(fetch(`${base}/streams/${videoId}`), 12000, 'YouTube');
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json();
+      const audios = (j.audioStreams || [])
+        .filter(a => a.url && a.mimeType?.includes('audio'))
+        .sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0));
+      const pick = audios.find(a => a.mimeType.includes('mp4')) || audios[0];
+      if (!pick) throw new Error('Stream audio kosong');
+      return { url: pick.url, ext: pick.mimeType.includes('webm') ? 'webm' : 'm4a' };
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('Semua server audio gagal');
+}
+
+// Spotify → cari lagu yang sama di YouTube → ambil audionya
+async function spotifyAudioViaYouTube(title, author) {
+  const q = (title + ' ' + (author && author !== 'Unknown' ? author : '') + ' audio').trim();
+  const be = await getBackend();
+  if (be) return { url: be + '/api/audio?q=' + encodeURIComponent(q), ext: 'mp3' };
+  const id = await youtubeSearchId(q);
+  return audioFromYouTubeId(id);
+}
+
+async function fetchSpotify(url) {
+  const idMatch = url.match(/(?:track|album|playlist)\/([a-zA-Z0-9]+)/);
+  if (!idMatch) throw new Error('URL Spotify tidak valid');
+  const isTrack = /track\//.test(url);
+  if (!isTrack) throw new Error('Sementara hanya support link track (bukan album/playlist)');
+
+  // Bersihkan query (?si=...) supaya provider tidak bingung
+  const cleanUrl = url.split('?')[0];
+
+  // Backend sendiri (server.js / Vercel): judul + artis + cover tanpa layanan pihak ketiga
+  const be = await getBackend();
+  let beMeta = null;
+  if (be) {
+    try {
+      const rm = await withTimeout(fetch(be + '/api/meta?url=' + encodeURIComponent(cleanUrl)), 12000, 'Spotify info');
+      const jm = await rm.json();
+      if (jm && jm.ok && jm.title) beMeta = jm;
+    } catch (e) { console.warn('Meta backend gagal:', e.message); }
+  }
+
+  const meta = beMeta ? null : await fetchSpotifyMeta(cleanUrl);
+
+  let found = null;
+  for (const p of (beMeta ? [] : SPOTIFY_PROVIDERS)) {
+    try {
+      found = await p.run(cleanUrl);
+      if (found && found.audioUrl) break;
+    } catch (e) {
+      console.warn('Provider Spotify "' + p.name + '" gagal:', e.message);
+      found = null;
+    }
+  }
+
+  if (!found && !meta && !beMeta) {
+    throw new Error('Spotify gagal dimuat. Cek koneksi internet / coba lagi nanti.');
+  }
+
+  // oEmbed hanya memberi judul lagu; ambil nama artis supaya pencarian audio lebih akurat
+  let artistInfo = null;
+  if (!found?.author && !beMeta) {
+    try {
+      const ri = await withTimeout(
+        fetch('https://api.fabdl.com/spotify/get?url=' + encodeURIComponent(cleanUrl)),
+        10000, 'Spotify info'
+      );
+      const ji = await ri.json();
+      artistInfo = ji.result || null;
+    } catch (e) { /* abaikan, tetap lanjut */ }
+  }
+
+  const title = beMeta?.title || found?.title || artistInfo?.name || meta?.title || 'Spotify Track';
+  let author = beMeta?.artist || found?.author || artistInfo?.artists || 'Unknown';
+  if (author === 'Unknown' && !beMeta) {
+    // Judul halaman Spotify berbentuk "Lagu - song and lyrics by Artis | Spotify"
+    try {
+      const html = await fetchTextViaProxy(cleanUrl, 'Spotify page');
+      const t = html.match(/<title>[^<]*? by ([^<|]+?) \| Spotify/i);
+      if (t) author = t[1].trim();
+    } catch (e) { /* abaikan */ }
+  }
+  const query = encodeURIComponent((title + ' ' + (author !== 'Unknown' ? author : '')).trim());
+
+  return {
+    platform: 'Spotify',
+    title,
+    author,
+    thumbnail: beMeta?.thumbnail || found?.thumbnail || meta?.thumbnail || null,
+    duration: found?.duration || null,
+    videoUrl: null,
+    audioUrl: found?.audioUrl || null,
+    audioResolver: found ? null : () => spotifyAudioViaYouTube(title, author),
+    extra: {
+      album: found?.album,
+      noAudio: !found,
+      searchUrl: 'https://www.youtube.com/results?search_query=' + query,
+    }
+  };
+}
+
+/* --- Master dispatcher --- */
+async function fetchMedia(url) {
+  const p = detectPlatform(url);
+  if (!p) throw new Error('Platform tidak dikenali. Cek kembali URL kamu.');
+
+  switch (p.key) {
+    case 'tiktok':    return fetchTikTok(url);
+    case 'youtube':   return fetchYouTube(url);
+    case 'spotify':   return fetchSpotify(url);
+    case 'instagram': return addCobaltAudio(await fetchViaCobalt(url, 'Instagram'), url);
+    case 'pinterest': return addCobaltAudio(await fetchViaCobalt(url, 'Pinterest'), url);
+    case 'facebook':  return addCobaltAudio(await fetchViaCobalt(url, 'Facebook'), url);
+    case 'twitter':   return addCobaltAudio(await fetchViaCobalt(url, 'Twitter/X'), url);
+    case 'soundcloud':return addCobaltAudio(await fetchViaCobalt(url, 'SoundCloud'), url);
+    default: throw new Error('Platform belum didukung.');
+  }
+}
+
+/* ============================================================
+   DOWNLOAD
+============================================================ */
+async function downloadFile(url, filename) {
+  if (!url) throw new Error('URL download kosong');
+  try {
+    const res = await fetch(url, { mode: 'cors' });
+    if (!res.ok) {
+      // Error dari audio server (JSON {ok:false,error}) → tampilkan pesannya, jangan buka tab baru
+      let detail = '';
+      try { const j = await res.clone().json(); detail = j.error || ''; } catch (e) {}
+      const err = new Error(detail ? detail.slice(0, 180) : 'HTTP ' + res.status);
+      err.fromServer = !!detail;
+      throw err;
+    }
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
+    return true;
+  } catch (e) {
+    if (e.fromServer) throw e;
+    // fallback: open in new tab (browser akan download atau play)
+    window.open(url, '_blank');
+    return false;
+  }
+}
+
+/* ============================================================
+   UI LOGIC
+============================================================ */
+const urlInput = $('urlInput');
+const urlWrap = $('urlWrap');
+const clearBtn = $('clearBtn');
+const fetchBtn = $('fetchBtn');
+const detectedHint = $('detectedHint');
+const loadingBox = $('loadingBox');
+const loadingText = $('loadingText');
+const preview = $('preview');
+const previewMedia = $('previewMedia');
+const previewTitle = $('previewTitle');
+const previewAuthor = $('previewAuthor');
+const previewMeta = $('previewMeta');
+const previewActions = $('previewActions');
+const previewNote = $('previewNote');
+
+let currentResult = null;
+
+// highlight platform tags
+function updatePlatformTags(url) {
+  const p = detectPlatform(url);
+  document.querySelectorAll('.platforms .tag').forEach(t => {
+    t.classList.toggle('active', p && t.dataset.tag === p.key);
+  });
+  if (!url) { detectedHint.textContent = 'Menunggu...'; detectedHint.style.color = ''; return; }
+  if (p) {
+    detectedHint.textContent = '✓ ' + p.name;
+    detectedHint.style.color = 'var(--purple)';
+  } else {
+    detectedHint.textContent = 'Platform tidak dikenali';
+    detectedHint.style.color = 'var(--term-red)';
+  }
+}
+
+urlInput.addEventListener('input', () => {
+  const val = urlInput.value.trim();
+  clearBtn.classList.toggle('hide', !val);
+  fetchBtn.disabled = val.length < 8;
+  urlWrap.classList.remove('error');
+  updatePlatformTags(val);
+});
+
+urlInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !fetchBtn.disabled) fetchBtn.click();
+});
+
+clearBtn.addEventListener('click', () => {
+  urlInput.value = '';
+  clearBtn.classList.add('hide');
+  fetchBtn.disabled = true;
+  urlWrap.classList.remove('error');
+  updatePlatformTags('');
+  resetPreview();
+  urlInput.focus();
+});
+
+function resetPreview() {
+  preview.classList.remove('show');
+  previewActions.innerHTML = '';
+  previewNote.style.display = 'none';
+  previewNote.textContent = '';
+  previewMedia.innerHTML = `<div class="ph"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>`;
+  previewMedia.classList.remove('vertical');
+}
+
+async function doFetch() {
+  const url = urlInput.value.trim();
+  if (!url) return;
+
+  const platform = detectPlatform(url);
+  if (!platform) {
+    showToast('Platform tidak dikenali.', 'error');
+    urlWrap.classList.add('error');
+    return;
+  }
+
+  resetPreview();
+  preview.classList.remove('show');
+  loadingBox.classList.add('show');
+  loadingText.textContent = `Mengambil data dari ${platform.name}...`;
+  setLoading(fetchBtn, true);
+  urlWrap.classList.remove('error');
+
+  try {
+    const result = await fetchMedia(url);
+    currentResult = result;
+    renderPreview(result);
+    if (result.extra?.noAudio) showToast('Preview dimuat. Klik Download MP3 untuk menyiapkan audio.', 'warn');
+    else showToast('Media berhasil dimuat!', 'success');
+  } catch (err) {
+    console.error(err);
+    // "Failed to fetch" = masalah jaringan / server API mati / diblokir CORS
+    const msg = (err && err.message === 'Failed to fetch')
+      ? 'Server API tidak bisa dihubungi (mati / diblokir). Coba lagi nanti.'
+      : (err.message || 'Gagal mengambil media.');
+    showToast(msg, 'error');
+    urlWrap.classList.add('error');
+  } finally {
+    loadingBox.classList.remove('show');
+    setLoading(fetchBtn, false);
+  }
+}
+
+fetchBtn.addEventListener('click', doFetch);
+
+function renderPreview(result) {
+  // Media
+  previewMedia.innerHTML = '';
+  const isSpotify = result.platform === 'Spotify' || (!result.videoUrl && result.audioUrl);
+
+  if (result.thumbnail) {
+    const img = document.createElement('img');
+    img.src = result.thumbnail;
+    img.alt = result.title;
+    img.loading = 'lazy';
+    img.referrerPolicy = 'no-referrer';
+    img.onerror = () => {
+      previewMedia.innerHTML = `<div class="ph"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>`;
+    };
+    previewMedia.appendChild(img);
+  } else if (result.videoUrl) {
+    const v = document.createElement('video');
+    v.src = result.videoUrl;
+    v.controls = true;
+    v.preload = 'metadata';
+    v.crossOrigin = 'anonymous';
+    previewMedia.appendChild(v);
+  } else {
+    previewMedia.innerHTML = `<div class="ph"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>`;
+  }
+
+  // Badge
+  const badge = document.createElement('div');
+  badge.className = 'preview-badge';
+  badge.textContent = result.platform;
+  previewMedia.appendChild(badge);
+
+  // Title & author
+  previewTitle.textContent = result.title || 'Untitled';
+  previewAuthor.textContent = result.author || 'Unknown';
+
+  // Meta
+  const meta = [];
+  if (result.duration) meta.push(`⏱ ${formatDuration(result.duration)}`);
+  if (result.extra?.views) meta.push(`👁 ${formatNumber(result.extra.views)}`);
+  if (result.extra?.likes) meta.push(`❤ ${formatNumber(result.extra.likes)}`);
+  if (result.extra?.album) meta.push(`💿 ${result.extra.album}`);
+  previewMeta.innerHTML = meta.map(m => `<span>${escapeHtml(m)}</span>`).join('');
+
+  // Catatan kalau audio tidak berhasil diambil (Spotify)
+  if (result.extra?.noAudio) {
+    previewNote.textContent = 'Spotify tidak menyediakan file audio langsung. Saat kamu klik Download MP3, lagu dicari di YouTube lalu audionya diunduh, jadi versinya bisa sedikit berbeda dari aslinya.';
+    previewNote.style.display = 'block';
+  } else {
+    previewNote.style.display = 'none';
+  }
+
+  // Actions
+  const actions = [];
+  const safeName = (result.title || 'media').replace(/[^\w\s\-]/g, '').slice(0, 60).trim() || 'media';
+
+  if (result.videoUrl) {
+    actions.push({
+      label: '📥 Download MP4',
+      cls: 'btn-green',
+      filename: safeName + '.mp4',
+      url: result.videoUrl,
+    });
+  }
+  if (result.audioUrl) {
+    actions.push({
+      label: isSpotify ? '🎵 Download MP3' : '🎵 Download MP3',
+      cls: 'btn-cyan',
+      filename: safeName + '.' + (result.audioExt || 'mp3'),
+      url: result.audioUrl,
+    });
+  } else if (result.audioResolver) {
+    // Link audio baru dicari saat tombol diklik (Spotify via YouTube, Cobalt mode audio)
+    actions.push({
+      label: '🎵 Download MP3',
+      cls: 'btn-cyan',
+      resolver: result.audioResolver,
+    });
+  }
+  // Fallback: tombol cari di YouTube (hanya muncul kalau audio Spotify gagal)
+  if (result.extra?.searchUrl && !result.audioUrl) {
+    actions.push({
+      label: '🔎 Cari di YouTube',
+      cls: 'btn-glass',
+      link: result.extra.searchUrl,
+    });
+  }
+
+  // kalau hanya ada video (cobalt), tambahkan tombol MP3 fallback (same URL — browser akan convert? no, just show)
+  // Kalau videoUrl ada tapi tidak ada audioUrl → tetap kasih opsi MP3 dengan url yang sama? Tidak, itu keliru.
+  // Skip.
+
+  previewActions.innerHTML = actions.map((a, i) => `
+    <button type="button" class="btn ${a.cls}${actions.length === 1 ? ' btn-full' : ''}" data-idx="${i}">
+      <span>${escapeHtml(a.label)}</span>
+    </button>
+  `).join('');
+
+  previewActions.querySelectorAll('button[data-idx]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const idx = parseInt(btn.dataset.idx, 10);
+      const a = actions[idx];
+      if (!a) return;
+
+      // Tombol berupa link biasa (bukan download file)
+      if (a.link) {
+        window.open(a.link, '_blank', 'noopener');
+        return;
+      }
+
+      const span = btn.querySelector('span');
+      const original = span.textContent;
+      span.innerHTML = '<span class="spinner"></span> Mengunduh...';
+      btn.disabled = true;
+      try {
+        let dlUrl = a.url, dlName = a.filename;
+        if (a.resolver) {
+          span.innerHTML = '<span class="spinner"></span> Menyiapkan audio...';
+          const res = await a.resolver();
+          dlUrl = res.url;
+          dlName = safeName + '.' + (res.ext || 'mp3');
+          span.innerHTML = '<span class="spinner"></span> Mengunduh...';
+        }
+        const ok = await downloadFile(dlUrl, dlName);
+        if (ok) showToast('File berhasil diunduh!', 'success');
+        else showToast('Download dibuka di tab baru (CORS).', 'warn');
+      } catch (err) {
+        showToast(err.message === 'Failed to fetch' ? 'Server audio tidak bisa dihubungi. Pastikan proyek sudah di-deploy ke Vercel (atau isi AUDIO_BACKEND dengan alamat Vercel-mu).' : (err.message || 'Gagal download.'), 'error');
+      } finally {
+        span.textContent = original;
+        btn.disabled = false;
+      }
+    });
+  });
+
+  preview.classList.add('show');
+}
+
+/* ============================================================
+   PARALLAX (opsional, sama seperti subdomain.html)
+============================================================ */
+document.addEventListener('mousemove', (e) => {
+  const x = (e.clientX / window.innerWidth - 0.5) * 12;
+  const y = (e.clientY / window.innerHeight - 0.5) * 12;
+  const bg = document.querySelector('.bg-layer');
+  if (bg) bg.style.transform = `translate(${x}px, ${y}px) scale(1.05)`;
+});
+
+/* ============================================================
+   AUTO-PASTE DETECT (bonus: baca clipboard kalau user klik input)
+============================================================ */
+urlInput.addEventListener('focus', async () => {
+  if (urlInput.value) return;
+  try {
+    const text = await navigator.clipboard.readText();
+    if (text && /^https?:\/\//i.test(text.trim()) && detectPlatform(text)) {
+      urlInput.value = text.trim();
+      urlInput.dispatchEvent(new Event('input'));
+    }
+  } catch {}
+});
+</script>
+
+<!-- Aslinya: <script src="/board-message.js" defer></script>
+     Di Live Server lokal file ini tidak ada (404 + error MIME type), jadi sekarang
+     hanya dimuat kalau file-nya memang ada di server. -->
+<script>
+(function () {
+  fetch('/board-message.js', { method: 'HEAD' })
+    .then(function (r) {
+      var type = r.headers.get('content-type') || '';
+      if (r.ok && /javascript|ecmascript/i.test(type)) {
+        var s = document.createElement('script');
+        s.src = '/board-message.js';
+        s.defer = true;
+        document.body.appendChild(s);
+      }
+    })
+    .catch(function () { /* abaikan */ });
+})();
+</script>
+</body>
+</html>

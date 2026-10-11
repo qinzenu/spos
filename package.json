@@ -1,0 +1,7 @@
+{
+  "name": "all-downloader",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": { "ffmpeg-static": "^5.2.0" },
+  "engines": { "node": ">=18" }
+}
