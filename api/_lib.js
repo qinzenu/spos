@@ -21,6 +21,38 @@ function download(url, dest, redirects = 0) {
   });
 }
 
+const YT = '/tmp/yt-dlp';
+const FF = '/tmp/ffmpeg';
+const COOKIES = '/tmp/cookies.txt';
+
+// Siapkan yt-dlp + ffmpeg di /tmp (sekali per instance)
+let _setup = null;
+function ensureTools() {
+  if (!_setup) {
+    _setup = (async () => {
+      if (!fs.existsSync(YT) || fs.statSync(YT).size < 1e6) {
+        await download('https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux', YT);
+        fs.chmodSync(YT, 0o755);
+      }
+      if (!fs.existsSync(FF)) {
+        fs.copyFileSync(require('ffmpeg-static'), FF);
+        fs.chmodSync(FF, 0o755);
+      }
+      if (process.env.YT_COOKIES_B64) {
+        fs.writeFileSync(COOKIES, Buffer.from(process.env.YT_COOKIES_B64, 'base64'));
+      }
+    })().catch((e) => { _setup = null; throw e; });
+  }
+  return _setup;
+}
+
+// Regex judul untuk --match-filter yt-dlp: hanya huruf/angka, dipisah \W* (tahan beda tanda baca)
+function titleRegex(t) {
+  const clean = String(t || '').replace(/[\(\[].*?[\)\]]/g, '').split(' - ')[0];
+  const toks = clean.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().match(/[a-z0-9]+/g) || [];
+  return toks.length ? '(?i)' + toks.join('\\W*') : null;
+}
+
 function decodeEntities(s) {
   return String(s || '')
     .replace(/&quot;/g, '"').replace(/&#x27;|&#39;/g, "'")
@@ -43,7 +75,8 @@ function parseSpotifyHtml(html) {
   const t = html.match(/<title>([^<]*)<\/title>/i);
   if (t) {
     // "Lagu - song and lyrics by Artis | Spotify"
-    const m = decodeEntities(t[1]).trim().match(/^.* by (.+?) \| Spotify$/i);
+    // Judul bisa berbahasa lain: "... by X" / "... oleh X"
+    const m = decodeEntities(t[1]).trim().match(/^.* (?:by|oleh) (.+?) \| Spotify$/i);
     if (m) artist = m[1].trim();
   }
   if (!artist && desc) {
@@ -53,4 +86,20 @@ function parseSpotifyHtml(html) {
   return { title, artist, thumbnail };
 }
 
-module.exports = { download, parseSpotifyHtml };
+const isBotErr = (t) => /sign in to confirm|not a bot|--cookies/i.test(t || '');
+
+function shortMsg(t) {
+  const line = String(t || '').trim().split('\n').pop().replace(/^ERROR:\s*/i, '');
+  return line.slice(0, 110) || 'tidak ada hasil yang cocok dengan judul lagu';
+}
+
+// errors: [{ src: 'youtube'|'soundcloud'|'url', msg }]
+function friendlyError(errors) {
+  return errors.map((e) => {
+    const name = { youtube: 'YouTube', soundcloud: 'SoundCloud' }[e.src] || 'Sumber';
+    if (isBotErr(e.msg)) return name + ': diblokir verifikasi bot (isi YT_COOKIES_B64 atau YT_PROXY di Vercel)';
+    return name + ': ' + shortMsg(e.msg);
+  }).join(' | ').slice(0, 300);
+}
+
+module.exports = { download, parseSpotifyHtml, friendlyError, isBotErr, ensureTools, titleRegex, YT, FF, COOKIES };

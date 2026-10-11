@@ -1,9 +1,7 @@
 {
   "rewrites": [{ "source": "/", "destination": "/testor.html" }],
   "functions": {
-    "api/audio.js": {
-      "maxDuration": 60,
-      "includeFiles": "node_modules/ffmpeg-static/**"
-    }
+    "api/audio.js": { "maxDuration": 60, "includeFiles": "node_modules/ffmpeg-static/**" },
+    "api/diag.js": { "maxDuration": 60, "includeFiles": "node_modules/ffmpeg-static/**" }
   }
 }

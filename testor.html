@@ -943,7 +943,7 @@ async function audioFromYouTubeId(videoId) {
 async function spotifyAudioViaYouTube(title, author) {
   const q = (title + ' ' + (author && author !== 'Unknown' ? author : '') + ' audio').trim();
   const be = await getBackend();
-  if (be) return { url: be + '/api/audio?q=' + encodeURIComponent(q), ext: 'mp3' };
+  if (be) return { url: be + '/api/audio?q=' + encodeURIComponent(q) + '&t=' + encodeURIComponent(title), ext: 'mp3' };
   const id = await youtubeSearchId(q);
   return audioFromYouTubeId(id);
 }
@@ -1056,7 +1056,7 @@ async function downloadFile(url, filename) {
       // Error dari audio server (JSON {ok:false,error}) → tampilkan pesannya, jangan buka tab baru
       let detail = '';
       try { const j = await res.clone().json(); detail = j.error || ''; } catch (e) {}
-      const err = new Error(detail ? detail.slice(0, 180) : 'HTTP ' + res.status);
+      const err = new Error(detail ? detail.slice(0, 300) : 'HTTP ' + res.status);
       err.fromServer = !!detail;
       throw err;
     }
